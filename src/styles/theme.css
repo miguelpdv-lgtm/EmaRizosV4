@@ -79,8 +79,14 @@
 }
 
 @theme inline {
-  --font-sans: "Montserrat", sans-serif;
-  --font-script: "Great Vibes", cursive;
+  /*
+   * Tipografía:
+   * Display/Script → Dancing Script 700: solo para slogans y frases inspiradoras (clase .font-script)
+   * Body/Sans      → Nunito 800/700/400: todos los headings y texto del sitio
+   */
+  --font-sans: "Nunito", sans-serif;
+  --font-script: "Dancing Script", cursive;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -131,41 +137,39 @@
     font-family: var(--font-sans);
   }
 
-  /**
-  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
-  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
-  */
-
   html {
     font-size: var(--font-size);
     font-family: var(--font-sans);
   }
 
+  /* Headings — Nunito limpio para todo el sitio */
   h1 {
-    font-family: var(--font-script);
+    font-family: var(--font-sans);
     font-size: var(--text-2xl);
-    font-weight: var(--font-weight-normal);
-    line-height: 1.5;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
   }
 
   h2 {
-    font-family: var(--font-script);
+    font-family: var(--font-sans);
     font-size: var(--text-xl);
-    font-weight: var(--font-weight-normal);
-    line-height: 1.5;
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
   }
 
   h3 {
     font-family: var(--font-sans);
     font-size: var(--text-lg);
-    font-weight: 800;
-    line-height: 1.5;
+    font-weight: 700;
+    line-height: 1.4;
   }
 
   h4 {
     font-family: var(--font-sans);
     font-size: var(--text-base);
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1.5;
   }
 
@@ -177,7 +181,7 @@
 
   button {
     font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
+    font-weight: 700;
     line-height: 1.5;
   }
 
@@ -186,4 +190,16 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+}
+
+/*
+ * Clase utilitaria para frases inspiradoras y slogans.
+ * Uso: <h1 className="font-script"> o cualquier elemento con texto especial.
+ * Ejemplos: slogan del hero, frases motivacionales, citas de clientes.
+ */
+.font-script {
+  font-family: var(--font-script) !important;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
 }
