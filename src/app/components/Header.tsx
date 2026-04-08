@@ -15,7 +15,7 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <ImageWithFallback 
+            <ImageWithFallback
               src="img/logo.png"
               alt="Ema Rizos Logo"
               className="h-10 w-auto object-contain rounded-md"
@@ -33,13 +33,12 @@ export function Header() {
             <Link to="/products" className="text-sm font-medium hover:text-primary transition-colors">
               Productos
             </Link>
-
             <Link to="/educacion" className="text-sm font-medium hover:text-primary transition-colors">
-              Mentoria
+              Mentoría
             </Link>
-            <a 
-              href="https://emarizos.site.agendapro.com/co/sucursal/235348" 
-              target="_blank" 
+            <a
+              href="https://emarizos.site.agendapro.com/co/sucursal/235348"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-sm font-medium text-white bg-primary px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
             >
@@ -62,7 +61,7 @@ export function Header() {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden"
+              className="lg:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
@@ -76,51 +75,37 @@ export function Header() {
             <div className="flex flex-col gap-4">
               <Link
                 to="/"
-                className="hover:text-primary transition-colors px-2"
+                className="text-sm font-medium hover:text-primary transition-colors px-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Inicio
               </Link>
               <Link
                 to="/quienes-somos"
-                className="hover:text-primary transition-colors px-2"
+                className="text-sm font-medium hover:text-primary transition-colors px-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Quiénes somos
               </Link>
               <Link
-                to="/que-hacemos"
-                className="hover:text-primary transition-colors px-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Qué hacemos
-              </Link>
-              <Link
                 to="/products"
-                className="hover:text-primary transition-colors px-2"
+                className="text-sm font-medium hover:text-primary transition-colors px-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Productos
               </Link>
               <Link
-                to="/test-rutina"
-                className="hover:text-primary transition-colors px-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Test de Rutina
-              </Link>
-              <Link
                 to="/educacion"
-                className="hover:text-primary transition-colors px-2"
+                className="text-sm font-medium hover:text-primary transition-colors px-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Educación
+                Mentoría
               </Link>
               <a
-                href="https://agendapro.com/ema-rizos"
+                href="https://emarizos.site.agendapro.com/co/sucursal/235348"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white bg-primary text-center py-2 rounded-md mx-2 hover:bg-primary/90 transition-colors"
+                className="text-sm font-medium text-white bg-primary text-center py-2 rounded-md mx-2 hover:bg-primary/90 transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Agendar Cita
