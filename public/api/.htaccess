@@ -1,0 +1,6 @@
+# Bloquear acceso directo a archivos internos de la API
+<FilesMatch "^(_bootstrap\.php|config\.php|config\.example\.php)$">
+  Require all denied
+</FilesMatch>
+
+Options -Indexes

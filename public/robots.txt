@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /-bb1mzxhb-admin-yuyh2mxw887128102910=+
+Disallow: /checkout
+Disallow: /order-confirmation
+
+Sitemap: https://emarizos.co/sitemap.xml

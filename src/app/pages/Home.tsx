@@ -2,18 +2,19 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
-import { Star, ShoppingBag, BookOpen, UserCheck, Calendar, Loader2 } from "lucide-react";
-import { fetchProducts, type Product } from "../data/products";
+import { BookOpen, UserCheck, Calendar, Loader2 } from "lucide-react";
+import { getProducts, productImage, type Product } from "../lib/api";
+import { HeroCarousel } from "../components/HeroCarousel";
 
 export function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ── Catálogo destacado ──────────────────────────────────────────────
   useEffect(() => {
     async function load() {
       try {
-        const data = await fetchProducts();
-        setFeaturedProducts(data.slice(0, 4));
+        setFeaturedProducts(await getProducts({ limit: 4 }));
       } catch (e) {
         console.error(e);
       } finally {
@@ -25,129 +26,90 @@ export function Home() {
 
   return (
     <div>
-      {/* Hero Section */}
-      <section
-        className="relative min-h-[800px] py-16 bg-cover bg-center flex items-center"
-        style={{
-          backgroundImage: `linear-gradient(rgba(123, 34, 64, 0.4), rgba(123, 34, 64, 0.7)), url('img/header.JPG')`,
-        }}
-      >
-        <div className="container mx-auto px-4 w-full mt-10 md:mt-0">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-12 lg:gap-20">
-            <div className="text-white max-w-xl">
-              <div className="mb-4">
-                <span className="text-xs md:text-sm font-bold tracking-[0.2em] text-secondary uppercase block drop-shadow-md">
-                  Barranquilla · Rizos & Afros
-                </span>
-              </div>
-              <h1 className="text-5xl md:text-6xl mb-6 font-script">
-                Cada rizo es único como tú
-              </h1>
-              <p className="text-xl mb-8 opacity-90">
-                Descubre en Ema Rizos nuestra línea de productos especializados y los mejores
-                consejos para mantener tu cabello natural, fuerte y radiante.
-              </p>
-              <div className="flex flex-wrap gap-4 mb-8">
-                <Link to="/products">
-                  <Button
-                    size="lg"
-                    className="bg-white text-primary hover:bg-secondary hover:text-primary transition-colors"
-                  >
-                    Ver Productos
-                  </Button>
-                </Link>
-                <a
-                  href="https://emarizos.site.agendapro.com/co/sucursal/235348"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button
-                    size="lg"
-                    className="bg-white text-primary hover:bg-secondary hover:text-primary transition-colors"
-                  >
-                    Agendar Cita
-                  </Button>
-                </a>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  "Especialistas en rizos",
-                  "Atención personalizada",
-                  "Cuidado consciente",
-                  "Confianza y esencia",
-                ].map((text) => (
-                  <span
-                    key={text}
-                    className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium text-white border border-white/30"
-                  >
-                    {text}
-                  </span>
-                ))}
-              </div>
+      {/* ── HERO ────────────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden">
+        <HeroCarousel />
+
+        {/* MÓVIL */}
+        <div className="md:hidden absolute inset-0 z-10 flex flex-col px-5 pt-6 pb-6 bg-black/40">
+          <div className="flex-1 flex flex-col justify-center">
+            <span className="text-xs font-bold tracking-[0.2em] text-secondary uppercase drop-shadow-md mb-2">
+              Barranquilla · Rizos · Afros
+            </span>
+            <h1 className="text-4xl font-script text-white mb-3 leading-tight drop-shadow-lg">
+              Cada rizo es único como tú
+            </h1>
+            <p className="text-sm text-white/90 mb-5 max-w-xs drop-shadow-md">
+              Productos especializados y consejos para mantener tu cabello natural, fuerte y radiante.
+            </p>
+            <div className="flex gap-3 flex-wrap mb-4">
+              <Link to="/products">
+                <Button size="sm" className="bg-white text-primary hover:bg-secondary hover:text-primary text-xs">
+                  Ver Productos
+                </Button>
+              </Link>
+              <a href="https://emarizos.site.agendapro.com/co/sucursal/235348" target="_blank" rel="noopener noreferrer">
+                <Button size="sm" className="bg-white text-primary hover:bg-secondary hover:text-primary text-xs">
+                  Agendar Cita
+                </Button>
+              </a>
             </div>
+            <div className="flex flex-wrap gap-2">
+              {["Especialistas en rizos", "Cuidado consciente"].map((text) => (
+                <span key={text} className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-white border border-white/30">
+                  {text}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
 
-            {/* Producto Estrella */}
-            <div className="w-full max-w-sm shrink-0">
-              <div className="bg-white/10 backdrop-blur-md border border-white/30 p-4 rounded-2xl shadow-2xl">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="bg-secondary text-primary text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                    Producto Estrella
-                  </span>
-                  <Star className="text-secondary size-5 fill-secondary" />
-                </div>
-
-                {loading ? (
-                  <div className="flex justify-center items-center aspect-square">
-                    <Loader2 className="size-8 animate-spin text-white" />
-                  </div>
-                ) : featuredProducts[0] ? (
-                  <Link to={`/products/${featuredProducts[0].ID}`} className="block group">
-                    <div className="bg-white rounded-xl overflow-hidden mb-4 relative aspect-square">
-                      <img
-                        src={`/img/products/${featuredProducts[0].ID}.png`}
-                        alt={featuredProducts[0].Nombre ?? "Producto"}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/img/logo.png";
-                        }}
-                      />
-                    </div>
-                    <h3 className="text-white text-xl font-semibold mb-1 group-hover:text-secondary transition-colors">
-                      {featuredProducts[0].Nombre}
-                    </h3>
-                    <p className="text-white/80 text-sm mb-3">
-                      {featuredProducts[0].Marca} · {featuredProducts[0].Formato}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-white">
-                        ${featuredProducts[0]["Precio venta externa"]?.toLocaleString("es-CO")}
-                      </span>
-                      <Button
-                        size="sm"
-                        className="bg-white text-primary hover:bg-secondary hover:text-primary"
-                      >
-                        <ShoppingBag className="size-4 mr-2" />
-                        Comprar
-                      </Button>
-                    </div>
+        {/* DESKTOP */}
+        <div className="hidden md:flex absolute inset-0 z-10 items-center">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-center gap-12 lg:gap-20">
+              <div className="text-white max-w-xl">
+                <span className="text-sm font-bold tracking-[0.2em] text-secondary uppercase block drop-shadow-md mb-4">
+                  Barranquilla · Rizos · Afros
+                </span>
+                <h1 className="text-5xl mb-6 font-script">Cada rizo es único como tú</h1>
+                <p className="text-xl mb-8 opacity-90">
+                  Descubre en Ema Rizos nuestra línea de productos especializados y los mejores consejos para mantener tu cabello natural, fuerte y radiante.
+                </p>
+                <div className="flex flex-wrap gap-4 mb-8">
+                  <Link to="/products">
+                    <Button size="lg" className="bg-white text-primary hover:bg-secondary hover:text-primary">
+                      Ver Productos
+                    </Button>
                   </Link>
-                ) : null}
+                  <a href="https://emarizos.site.agendapro.com/co/sucursal/235348" target="_blank" rel="noopener noreferrer">
+                    <Button size="lg" className="bg-white text-primary hover:bg-secondary hover:text-primary">
+                      Agendar Cita
+                    </Button>
+                  </a>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {["Especialistas en rizos", "Atención personalizada", "Cuidado consciente", "Confianza y esencia"].map((text) => (
+                    <span key={text} className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium text-white border border-white/30">
+                      {text}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <div className="h-[100dvh] md:h-[720px]" />
       </section>
 
-      {/* Featured Products */}
-      <section className="py-16">
+      {/* ── CATÁLOGO ────────────────────────────────────────────────── */}
+      <section className="py-10 md:py-16">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-semibold text-primary">Catálogo de Productos</h2>
+          <div className="flex items-center justify-between mb-6 md:mb-8">
+            <h2 className="text-xl md:text-3xl font-semibold text-primary">Catálogo de Productos</h2>
             <Link to="/products">
-              <Button
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-white"
-              >
+              <Button variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white text-sm">
                 Ver Todos
               </Button>
             </Link>
@@ -158,64 +120,124 @@ export function Home() {
               <Loader2 className="size-8 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <Link key={product.ID} to={`/products/${product.ID}`}>
-                  <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 bg-white">
-                    <div className="aspect-square overflow-hidden bg-muted">
-                      <img
-                        src={`/img/products/${product.ID}.png`}
-                        alt={product.Nombre ?? "Producto"}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/img/logo.png";
-                        }}
-                      />
-                    </div>
-                    <CardContent className="p-4">
-                      <div className="text-xs text-muted-foreground uppercase mb-1">
-                        {product.Categoría} · {product.Marca}
-                      </div>
-                      <h3 className="mb-2 font-medium text-foreground">{product.Nombre}</h3>
-                      <p className="text-xl font-semibold text-primary">
-                        ${product["Precio venta externa"]?.toLocaleString("es-CO")}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+            <>
+              {/* Móvil: scroll horizontal */}
+              <div className="flex md:hidden gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+                {featuredProducts.map((product) => {
+                  const precioFinal =
+                    product.discount_active && product.discount_pct > 0
+                      ? Math.round(product.precio * (1 - product.discount_pct / 100))
+                      : null;
+                  return (
+                    <Link key={product.id} to={`/products/${product.id}`} className="shrink-0 w-[180px] snap-start">
+                      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 bg-white">
+                        <div className="aspect-square overflow-hidden bg-muted">
+                          <img
+                            src={productImage(product)}
+                            alt={product.display_name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/img/logo.png"; }}
+                          />
+                        </div>
+                        <CardContent className="p-3">
+                          <div className="text-xs text-muted-foreground uppercase mb-1">{product.marca}</div>
+                          <h3 className="mb-1 font-medium text-foreground text-sm leading-tight line-clamp-2">
+                            {product.display_name}
+                          </h3>
+                          {precioFinal ? (
+                            <>
+                              <p className="text-xs line-through text-muted-foreground">
+                                ${product.precio.toLocaleString("es-CO")}
+                              </p>
+                              <p className="text-base font-semibold text-red-600">
+                                ${precioFinal.toLocaleString("es-CO")}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-base font-semibold text-primary">
+                              ${product.precio.toLocaleString("es-CO")}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* Desktop: grid */}
+              <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredProducts.map((product) => {
+                  const precioFinal =
+                    product.discount_active && product.discount_pct > 0
+                      ? Math.round(product.precio * (1 - product.discount_pct / 100))
+                      : null;
+                  return (
+                    <Link key={product.id} to={`/products/${product.id}`}>
+                      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-border/50 bg-white">
+                        <div className="aspect-square overflow-hidden bg-muted">
+                          <img
+                            src={productImage(product)}
+                            alt={product.display_name}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/img/logo.png"; }}
+                          />
+                        </div>
+                        <CardContent className="p-4">
+                          <div className="text-xs text-muted-foreground uppercase mb-1">
+                            {product.categoria} · {product.marca}
+                          </div>
+                          <h3 className="mb-2 font-medium text-foreground">{product.display_name}</h3>
+                          {precioFinal ? (
+                            <>
+                              <p className="text-sm line-through text-muted-foreground">
+                                ${product.precio.toLocaleString("es-CO")}
+                              </p>
+                              <p className="text-xl font-semibold text-red-600">
+                                ${precioFinal.toLocaleString("es-CO")}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-xl font-semibold text-primary">
+                              ${product.precio.toLocaleString("es-CO")}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+            </>
           )}
         </div>
       </section>
 
-      {/* Test de Rutina & Educacion */}
-      <section className="py-16 bg-primary text-white">
+      {/* ── TEST / CURSO ─────────────────────────────────────────── */}
+      <section className="py-10 md:py-16 bg-primary text-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div className="bg-white/10 p-8 rounded-2xl backdrop-blur-sm border border-white/20">
-              <UserCheck className="size-12 mb-6 text-secondary" />
-              <h3 className="text-2xl font-semibold mb-4 text-white">Encuentra tu Rutina Ideal</h3>
-              <p className="mb-8 text-white/90 text-lg">
-                ¿No sabes qué productos necesita tu cabello? Realiza nuestro test rápido y obtén
-                una recomendación personalizada para tu rutina.
+          <div className="grid grid-cols-2 gap-4 md:gap-12">
+            <div className="bg-white/10 p-4 md:p-8 rounded-2xl backdrop-blur-sm border border-white/20">
+              <UserCheck className="size-7 md:size-12 mb-3 md:mb-6 text-secondary" />
+              <h3 className="text-sm md:text-2xl font-semibold mb-2 md:mb-4 leading-tight">Encuentra tu Rutina Ideal</h3>
+              <p className="hidden md:block mb-8 text-white/90 text-lg">
+                Realiza nuestro test y obtén una recomendación personalizada.
               </p>
               <Link to="/test-rutina">
-                <Button className="bg-secondary text-primary hover:bg-white w-full sm:w-auto">
-                  Hacer el test ahora
+                <Button size="sm" className="bg-secondary text-primary hover:bg-white text-xs md:text-sm">
+                  Hacer el test
                 </Button>
               </Link>
             </div>
-            <div className="bg-white/10 p-8 rounded-2xl backdrop-blur-sm border border-white/20">
-              <BookOpen className="size-12 mb-6 text-secondary" />
-              <h3 className="text-2xl font-semibold mb-4 text-white">Mentorías</h3>
-              <p className="mb-8 text-white/90 text-lg">
-                Empieza tu camino profesional en el cabello rizado con una formación presencial,
-                práctica y especializada.
+            <div className="bg-white/10 p-4 md:p-8 rounded-2xl backdrop-blur-sm border border-white/20">
+              <BookOpen className="size-7 md:size-12 mb-3 md:mb-6 text-secondary" />
+              <h3 className="text-sm md:text-2xl font-semibold mb-2 md:mb-4 leading-tight">Curso para profesionales</h3>
+              <p className="hidden md:block mb-8 text-white/90 text-lg">
+                Formación práctica en cabello rizado.
               </p>
               <Link to="/educacion">
-                <Button className="bg-secondary text-primary hover:bg-white w-full sm:w-auto">
-                  Más sobre mentorías
+                <Button size="sm" className="bg-secondary text-primary hover:bg-white text-xs md:text-sm">
+                  Más info
                 </Button>
               </Link>
             </div>
@@ -223,25 +245,17 @@ export function Home() {
         </div>
       </section>
 
-      {/* CTA Agendar Cita */}
-      <section className="py-20 bg-muted text-center">
+      {/* ── CTA ─────────────────────────────────────────────────────── */}
+      <section className="py-10 md:py-20 bg-muted text-center">
         <div className="container mx-auto px-4">
-          <Calendar className="size-16 mx-auto mb-6 text-primary" />
-          <h2 className="text-4xl font-semibold mb-4 text-primary">Visita nuestro Salón</h2>
-          <p className="text-xl mb-8 text-foreground/80 max-w-2xl mx-auto">
-            Déjate consentir por expertas en cabello rizado. Reserva tu cita a través de AgendaPro
-            y dale a tus rizos el trato profesional que merecen.
+          <Calendar className="size-10 md:size-16 mx-auto mb-4 md:mb-6 text-primary" />
+          <h2 className="text-2xl md:text-4xl font-semibold mb-3 md:mb-4 text-primary">Visita nuestro Salón</h2>
+          <p className="text-base md:text-xl mb-6 md:mb-8 text-foreground/80 max-w-2xl mx-auto">
+            Reserva tu cita y dale a tus rizos el trato profesional que merecen.
           </p>
-          <a
-            href="https://emarizos.site.agendapro.com/co/sucursal/235348"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button
-              size="lg"
-              className="bg-primary text-white hover:bg-primary/90 text-lg px-8 py-6 rounded-full"
-            >
-              Agendar Cita en AgendaPro
+          <a href="https://emarizos.site.agendapro.com/co/sucursal/235348" target="_blank" rel="noopener noreferrer">
+            <Button size="lg" className="bg-primary text-white hover:bg-primary/90 px-6 md:px-8 py-4 md:py-6 text-sm md:text-base rounded-full">
+              Agendar Cita
             </Button>
           </a>
         </div>

@@ -14,8 +14,14 @@ build/
 # Sistema
 .DS_Store
 Thumbs.db
-node_modules
-node_modules
-node_modules
-node_modules
-node_modules
+# API
+public/api/config.php
+migration/supabase-products.json
+migration/local-config.php
+public/uploads/
+
+# Archivos comprimidos / builds empaquetados
+*.zip
+
+# Variables de entorno
+.env

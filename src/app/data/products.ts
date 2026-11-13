@@ -1,56 +1,35 @@
-import { supabase } from "../lib/supabase";
+import { getProduct, getProducts, productImage, type Product } from "../lib/api";
 
-export type Product = {
-  ID: number;
-  SKU: string | null;
-  Categoría: string | null;
-  Marca: string | null;
-  Nombre: string | null;
-  Formato: string | null;
-  Costo: number | null;
-  "Precio venta externa": number | null;
-  "Precio venta interna": number | null;
-  "Comisión": number | null;
-  "Tipo de comisión (0: %, 1: $)": string | null;
-  "Descripción": string | null;
-  Estado: string | null;
-  "Precio contiene IVA": string | null;
-  "% IVA (vacio por defecto)": number | null;
-  "Stock Ema Rizos": number | null;
-};
+export type { Product };
+export { productImage };
 
 export async function fetchProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("Estado", "Activo")
-    .gt("Stock Ema Rizos", 0)
-    .order("Nombre", { ascending: true });
-
-  if (error) throw error;
-  return data as Product[];
+  return getProducts();
 }
 
 export async function fetchProductById(id: number): Promise<Product | null> {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("ID", id)
-    .single();
-
-  if (error) throw error;
-  return data as Product;
+  return getProduct(id);
 }
 
 export async function fetchProductsByCategory(category: string): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("Estado", "Activo")
-    .gt("Stock Ema Rizos", 0)
-    .eq("Categoría", category)
-    .order("Nombre", { ascending: true });
+  return getProducts({ categoria: category });
+}
 
-  if (error) throw error;
-  return data as Product[];
+export type ProductWithExtras = Product;
+
+export function getProductImage(product: Product): string {
+  return productImage(product);
+}
+
+export function getProductDescription(product: Product): string {
+  if (product.descripcion?.trim()) return product.descripcion;
+  if (product.descripcion_corta?.trim()) return product.descripcion_corta;
+
+  const parts = [product.categoria, product.marca, product.formato].filter(Boolean);
+
+  if (parts.length) {
+    return `${parts.join(" · ")}. Producto recomendado para el cuidado del cabello.`;
+  }
+
+  return "Producto recomendado para el cuidado del cabello.";
 }

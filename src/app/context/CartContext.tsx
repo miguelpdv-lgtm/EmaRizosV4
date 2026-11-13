@@ -11,6 +11,7 @@ export interface CartItem {
   id: string;
   name: string;
   price: number;
+  originalPrice?: number; // ✅ precio sin descuento (opcional)
   quantity: number;
   image?: string | null;
   type: "product" | "service";
@@ -31,18 +32,28 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const STORAGE_KEY = "ema-rizos-cart";
 const getItemKey = (id: string, type: CartItem["type"]) => `${type}-${id}`;
 
+function safeGetStorage(key: string): CartItem[] {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+function safeSetStorage(key: string, value: unknown) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // localStorage bloqueado o no disponible — ignorar
+  }
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [items, setItems] = useState<CartItem[]>(() => safeGetStorage(STORAGE_KEY));
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    safeSetStorage(STORAGE_KEY, items);
   }, [items]);
 
   const addToCart = (item: Omit<CartItem, "quantity">) => {

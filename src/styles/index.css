@@ -16,3 +16,18 @@
 .about-us-slider .slick-dots li.slick-active button:before {
   color: var(--color-primary);
 }
+
+.slick-dots li button:before {
+  color: white !important;
+  opacity: 0.5;
+}
+.slick-dots li.slick-active button:before {
+  opacity: 1;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

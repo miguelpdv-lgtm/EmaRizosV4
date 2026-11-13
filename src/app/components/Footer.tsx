@@ -1,5 +1,6 @@
 import { Link } from "react-router";
-import { Facebook, Instagram, MapPin, Phone} from "lucide-react";
+import { Facebook, Instagram, MapPin} from "lucide-react";
+import { IoLogoTiktok, IoLogoWhatsapp } from "react-icons/io5"; 
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
 export function Footer() {
@@ -46,16 +47,14 @@ export function Footer() {
                 to="/educacion"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                Mentoria
+                Curso para profesionales
               </Link>
-              <a
-                href="https://emarizos.site.agendapro.com/co/sucursal/235348"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                Agendar cita
-              </a>
+<Link
+  to="/servicios"
+  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+>
+  Servicios
+</Link>
             </div>
           </div>
 
@@ -92,11 +91,11 @@ export function Footer() {
                 </div>
               </a>
               <a
-                href="https://api.whatsapp.com/send/?phone=%2B573007633755&text=%C2%A1Hola%21+vi+tu+p%C3%A1gina+de+AgendaPro+y+me+gustar%C3%ADa+resolver+algunas+dudas&type=phone_number&app_absent=0"
+                href="https://api.whatsapp.com/send/?phone=%2B573007633755"
                 className="flex items-center gap-3 text-sm text-muted-foreground hover:text-primary transition-colors group"
               >
-                <Phone className="size-5 shrink-0 text-primary group-hover:rotate-12 transition-transform" />
-                <span>WhatsApp Ema Rizos</span>
+                <IoLogoWhatsapp className="size-5 shrink-0 text-primary group-hover:rotate-12 transition-transform" />
+                <span>WhatsApp</span>
               </a>
             </div>
           </div>
@@ -117,6 +116,14 @@ export function Footer() {
               >
                 <Facebook className="size-5" />
               </a>
+              
+              <a
+                href="https://www.tiktok.com/@emarizos?_r=1&_t=ZS-95alM6pA2OT"
+                className="text-muted-foreground hover:text-primary"
+              >
+                <IoLogoTiktok className="size-5" />
+              </a>
+
             </div>
           </div>
         </div>
