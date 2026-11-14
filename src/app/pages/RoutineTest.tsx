@@ -130,10 +130,10 @@ const QUESTIONS: Question[] = [
     helper: "Déjalo secar al aire sin producto para verlo mejor.",
     showImages: true,
     options: [
-      { value: "ondulado", label: "Ondulado", helper: "Onda suave en forma de S", image: "/img/quiz/hair-ondulado.jpg" },
-      { value: "rizado", label: "Rizado", helper: "S marcada, espiral abierta", image: "/img/quiz/hair-rizado.jpg" },
-      { value: "muy_rizado", label: "Muy rizado", helper: "Espiral cerrada o zigzag", image: "/img/quiz/hair-muy-rizado.jpg" },
-      { value: "afro", label: "Afro / coily", helper: "Rizo muy compacto", image: "/img/quiz/hair-afro.jpg" },
+      { value: "ondulado", label: "Ondulado", helper: "Onda suave en forma de S", image: "/img/quiz/hair-ondulado.webp" },
+      { value: "rizado", label: "Rizado", helper: "S marcada, espiral abierta", image: "/img/quiz/hair-rizado.webp" },
+      { value: "muy_rizado", label: "Muy rizado", helper: "Espiral cerrada o zigzag", image: "/img/quiz/hair-muy-rizado.webp" },
+      { value: "afro", label: "Afro / coily", helper: "Rizo muy compacto", image: "/img/quiz/hair-afro.webp" },
     ],
   },
   {
@@ -142,9 +142,9 @@ const QUESTIONS: Question[] = [
     helper: "Toma un solo pelo y compáralo. El fino apenas se ve; el grueso se siente como un hilo de coser.",
     showImages: true,
     options: [
-      { value: "fino", label: "Fino", helper: "La hebra casi no se ve", image: "/img/quiz/grosor-fino.jpg" },
-      { value: "medio", label: "Medio", helper: "Hebra normal, se ve pero no se siente", image: "/img/quiz/grosor-medio.jpg" },
-      { value: "grueso", label: "Grueso", helper: "La hebra se siente como un hilo", image: "/img/quiz/grosor-grueso.jpg" },
+      { value: "fino", label: "Fino", helper: "La hebra casi no se ve", image: "/img/quiz/grosor-fino.webp" },
+      { value: "medio", label: "Medio", helper: "Hebra normal, se ve pero no se siente", image: "/img/quiz/grosor-medio.webp" },
+      { value: "grueso", label: "Grueso", helper: "La hebra se siente como un hilo", image: "/img/quiz/grosor-grueso.webp" },
     ],
   },
   {
@@ -153,9 +153,9 @@ const QUESTIONS: Question[] = [
     helper: "Míralo desde arriba con buena luz.",
     showImages: true,
     options: [
-      { value: "baja", label: "Poca densidad", helper: "Se ve bastante cuero cabelludo", image: "/img/quiz/densidad-baja.jpg" },
-      { value: "media", label: "Densidad media", helper: "Se ve algo de cuero cabelludo", image: "/img/quiz/densidad-media.jpg" },
-      { value: "alta", label: "Mucha densidad", helper: "Casi no se ve el cuero cabelludo", image: "/img/quiz/densidad-alta.jpg" },
+      { value: "baja", label: "Poca densidad", helper: "Se ve bastante cuero cabelludo", image: "/img/quiz/densidad-baja.webp" },
+      { value: "media", label: "Densidad media", helper: "Se ve algo de cuero cabelludo", image: "/img/quiz/densidad-media.webp" },
+      { value: "alta", label: "Mucha densidad", helper: "Casi no se ve el cuero cabelludo", image: "/img/quiz/densidad-alta.webp" },
     ],
   },
   {
@@ -164,9 +164,9 @@ const QUESTIONS: Question[] = [
     helper: "La porosidad define cuánto absorbe y retiene la hidratación.",
     showImages: true,
     options: [
-      { value: "baja", label: "Tarda en absorber", helper: "El agua rueda, cuesta mojarla", image: "/img/quiz/porosidad-baja.jpg" },
-      { value: "media", label: "Absorbe normal", helper: "Se hidrata y lo retiene bien", image: "/img/quiz/porosidad-media.jpg" },
-      { value: "alta", label: "Absorbe rápido pero se reseca", helper: "Bebe todo pero se seca enseguida", image: "/img/quiz/porosidad-alta.jpg" },
+      { value: "baja", label: "Tarda en absorber", helper: "El agua rueda, cuesta mojarla", image: "/img/quiz/porosidad-baja.webp" },
+      { value: "media", label: "Absorbe normal", helper: "Se hidrata y lo retiene bien", image: "/img/quiz/porosidad-media.webp" },
+      { value: "alta", label: "Absorbe rápido pero se reseca", helper: "Bebe todo pero se seca enseguida", image: "/img/quiz/porosidad-alta.webp" },
       { value: "nose", label: "No lo sé", helper: "Te ayudaremos igual" },
     ],
   },
@@ -1037,7 +1037,7 @@ export default function RoutineTest({ onRecommendationsReady }: RoutineTestProps
 
   const handleAddToCart = (product: ScoredProduct, quantity = 1, showToast = true) => {
     if (!product) return;
-    const image = getProductImage(product) || "/img/logo.png";
+    const image = getProductImage(product) || "/img/logo.webp";
     for (let i = 0; i < quantity; i++) {
       addToCart({ id: String(product.id), name: product.display_name, price: Number(product.precio || 0), image, type: "product" });
     }
@@ -1403,7 +1403,7 @@ function ProductCard({
         alt={product.display_name}
         className="h-64 md:h-72 lg:h-80 w-full object-cover"
         loading="lazy"
-        onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/img/logo.png"; }}
+        onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/img/logo.webp"; }}
       />
       <div className="p-4 md:p-5 flex flex-col flex-1">
         <div className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-primary">{label}</div>

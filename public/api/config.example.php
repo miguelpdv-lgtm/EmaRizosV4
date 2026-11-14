@@ -14,8 +14,8 @@ return [
     'uploads_dir' => __DIR__ . '/../uploads/products',
     'uploads_url' => '/uploads/products',
 
-    // Tamaño máximo de imagen en bytes (5 MB)
-    'max_upload_bytes' => 5 * 1024 * 1024,
+    // Tamaño máximo de imagen en bytes (25 MB; el servidor la reduce a 1200 px WebP)
+    'max_upload_bytes' => 25 * 1024 * 1024,
 
     // Código que pide el panel para crear el PRIMER administrador. Después ya no se usa.
     'setup_key' => 'CAMBIAR-por-un-codigo-largo',

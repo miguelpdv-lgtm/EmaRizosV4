@@ -130,7 +130,7 @@ export function Education() {
       <section className="relative overflow-hidden bg-primary py-14 md:py-20 lg:py-24">
         <div className="absolute inset-0 opacity-20">
           <img
-            src="/img/mentoria/mentoriaheader.jpeg"
+            src="/img/mentoria/mentoriaheader.webp"
             alt="Curso para profesionales Ema Rizos"
             className="h-full w-full object-cover"
           />
@@ -200,7 +200,7 @@ export function Education() {
             <div className="relative mx-auto w-full max-w-md lg:max-w-none">
               <div className="overflow-hidden rounded-[28px] shadow-xl">
                 <img
-                  src="/img/mentoria/mentoria2.png"
+                  src="/img/mentoria/mentoria2.webp"
                   alt="Curso para profesionales"
                   className="h-[320px] w-full object-cover md:h-[420px]"
                 />
@@ -327,7 +327,7 @@ export function Education() {
           <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-6 md:gap-12 lg:grid-cols-2">
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-xl sm:aspect-[3/4] lg:order-1">
               <img
-                src="/img/mentoria/mentoria1.png"
+                src="/img/mentoria/mentoria1.webp"
                 alt="Método Ema Rizos"
                 className="h-full w-full object-cover"
               />
@@ -473,7 +473,7 @@ export function Education() {
               <div className="lg:sticky lg:top-8">
                 <div className="relative overflow-hidden rounded-2xl shadow-xl">
                   <img
-                    src="/img/mentoria/mentoria3.png"
+                    src="/img/mentoria/mentoria3.webp"
                     alt="Contenido del curso"
                     className="h-[340px] w-full object-cover md:h-[520px]"
                   />
@@ -526,7 +526,7 @@ export function Education() {
             <div className="relative mx-auto w-full max-w-md lg:max-w-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:self-center">
               <div className="overflow-hidden rounded-[28px] bg-white/10 shadow-2xl">
                 <img
-                  src="/img/mentoria/mentoria4.png"
+                  src="/img/mentoria/mentoria4.webp"
                   alt="Curso para profesionales en cabello rizado"
                   className="h-[320px] w-full object-cover md:h-[420px] lg:h-[460px]"
                 />

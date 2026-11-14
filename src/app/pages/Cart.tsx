@@ -61,7 +61,7 @@ export function Cart() {
                       alt={item.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = "/img/logo.png";
+                        (e.currentTarget as HTMLImageElement).src = "/img/logo.webp";
                       }}
                     />
                   </div>

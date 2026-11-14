@@ -1,37 +1,28 @@
 import { createBrowserRouter } from "react-router";
-import { Home } from "./pages/Home";
-import { Products } from "./pages/Products";
-import { ProductDetail } from "./pages/ProductDetail";
-import { Cart } from "./pages/Cart";
-import { Checkout } from "./pages/Checkout";
 import { Root } from "./pages/Root";
-import { AboutUs } from "./pages/AboutUs";
-import { OrderConfirmation } from "./pages/OrderConfirmation";
-import RoutineTest from "./pages/RoutineTest";
-import { Education } from "./pages/Education";
-import { AdminPanel } from "./pages/AdminPanel";
-import { ServicesPage } from "./pages/ServicesPage.tsx";
-import { NotFound } from "./pages/NotFound"; // 🔥 IMPORTA TU COMPONENTE AQUÍ
+import { Home } from "./pages/Home";
+import { NotFound } from "./pages/NotFound";
 
+// Inicio carga de inmediato; el resto de páginas se descarga solo cuando se visita.
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: Root,
-    errorElement: <NotFound />, 
+    errorElement: <NotFound />,
+    HydrateFallback: () => null,
     children: [
       { index: true, Component: Home },
-      { path: "quienes-somos", Component: AboutUs },
-      { path: "servicios", Component: ServicesPage },
-      { path: "products", Component: Products },
-      { path: "products/:id", Component: ProductDetail },
-      { path: "cart", Component: Cart },
-      { path: "checkout", Component: Checkout },
-      { path: "order-confirmation", Component: OrderConfirmation },
-      { path: "test-rutina", Component: RoutineTest },
-      { path: "educacion", Component: Education },
-      { path: "-bb1mzxhb-admin-yuyh2mxw887128102910=+", Component: AdminPanel },
-      
-      { path: "*", Component: NotFound }, 
+      { path: "quienes-somos", lazy: async () => ({ Component: (await import("./pages/AboutUs")).AboutUs }) },
+      { path: "servicios", lazy: async () => ({ Component: (await import("./pages/ServicesPage")).ServicesPage }) },
+      { path: "products", lazy: async () => ({ Component: (await import("./pages/Products")).Products }) },
+      { path: "products/:id", lazy: async () => ({ Component: (await import("./pages/ProductDetail")).ProductDetail }) },
+      { path: "cart", lazy: async () => ({ Component: (await import("./pages/Cart")).Cart }) },
+      { path: "checkout", lazy: async () => ({ Component: (await import("./pages/Checkout")).Checkout }) },
+      { path: "order-confirmation", lazy: async () => ({ Component: (await import("./pages/OrderConfirmation")).OrderConfirmation }) },
+      { path: "test-rutina", lazy: async () => ({ Component: (await import("./pages/RoutineTest")).default }) },
+      { path: "educacion", lazy: async () => ({ Component: (await import("./pages/Education")).Education }) },
+      { path: "-bb1mzxhb-admin-yuyh2mxw887128102910=+", lazy: async () => ({ Component: (await import("./pages/AdminPanel")).AdminPanel }) },
+      { path: "*", Component: NotFound },
     ],
   },
 ]);

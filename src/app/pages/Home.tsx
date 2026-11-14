@@ -134,9 +134,11 @@ export function Home() {
                         <div className="aspect-square overflow-hidden bg-muted">
                           <img
                             src={productImage(product)}
+                            loading="lazy"
+                            decoding="async"
                             alt={product.display_name}
                             className="w-full h-full object-cover"
-                            onError={(e) => { (e.target as HTMLImageElement).src = "/img/logo.png"; }}
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/img/logo.webp"; }}
                           />
                         </div>
                         <CardContent className="p-3">
@@ -178,9 +180,11 @@ export function Home() {
                         <div className="aspect-square overflow-hidden bg-muted">
                           <img
                             src={productImage(product)}
+                            loading="lazy"
+                            decoding="async"
                             alt={product.display_name}
                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                            onError={(e) => { (e.target as HTMLImageElement).src = "/img/logo.png"; }}
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/img/logo.webp"; }}
                           />
                         </div>
                         <CardContent className="p-4">

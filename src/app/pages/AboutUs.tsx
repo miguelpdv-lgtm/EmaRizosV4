@@ -3,8 +3,8 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 const hoyImages = [
-  { src: "img/historia/hoy1.jpeg", alt: "Ema Rizos hoy - salón" },
-  { src: "img/historia/hoy2.jpeg", alt: "Ema Rizos hoy - clientes" },
+  { src: "/img/historia/hoy1.webp", alt: "Ema Rizos hoy - salón" },
+  { src: "/img/historia/hoy2.webp", alt: "Ema Rizos hoy - clientes" },
 ];
 
 export function AboutUs() {
@@ -50,7 +50,7 @@ export function AboutUs() {
           <div className="lg:w-1/2 w-full max-w-sm mx-auto lg:max-w-none">
             <div className="aspect-[4/3] md:aspect-video lg:aspect-[4/5] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-xl border-4 md:border-8 border-white">
               <img
-                src="img/historia/historia1.png"
+                src="/img/historia/historia1.webp"
                 alt="El inicio del gran cambio capilar"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
               />
@@ -74,14 +74,14 @@ export function AboutUs() {
           <div className="lg:w-1/2 w-full flex gap-3 md:gap-4 max-w-sm mx-auto lg:max-w-none">
             <div className="w-1/2 mt-8 md:mt-12 aspect-square rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-xl border-4 md:border-8 border-white">
               <img
-                src="img/historia/historia2.png"
+                src="/img/historia/historia2.webp"
                 alt="Una silla y un espejo donde todo comenzó"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
               />
             </div>
             <div className="w-1/2 aspect-[3/4] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-xl border-4 md:border-8 border-white">
               <img
-                src="img/historia/historia3.png"
+                src="/img/historia/historia3.webp"
                 alt="Mujeres compartiendo y apoyándose"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
               />

@@ -5,7 +5,7 @@
 //   POST /api/admin.php?action=setup | login | logout
 //   GET  /api/admin.php?action=products
 //   POST /api/admin.php?action=create_product | update_product | delete_product
-//   POST /api/admin.php?action=bulk_discount | upload_image | change_password
+//   POST /api/admin.php?action=bulk_discount | upload_image | change_password | change_username
 // ─────────────────────────────────────────────────────────────────────────────
 require __DIR__ . '/_bootstrap.php';
 
@@ -47,11 +47,21 @@ function admin_count(): int
     return (int)db()->query('SELECT COUNT(*) FROM admin_users')->fetchColumn();
 }
 
-function validate_credentials(string $email, string $password): void
+function normalize_username($value): string
 {
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        fail('Correo inválido');
+    return strtolower(trim((string)$value));
+}
+
+function validate_username(string $username): void
+{
+    if (!preg_match('/^[a-z0-9._-]{3,40}$/', $username)) {
+        fail('El usuario debe tener entre 3 y 40 caracteres: letras, números, punto, guion o guion bajo (sin espacios)');
     }
+}
+
+function validate_credentials(string $username, string $password): void
+{
+    validate_username($username);
     if (strlen($password) < 10) {
         fail('La contraseña debe tener al menos 10 caracteres');
     }
@@ -135,13 +145,56 @@ function delete_uploaded_file(?string $url): void
     if (is_file($path)) @unlink($path);
 }
 
+/**
+ * Reduce la imagen a máx. 1200 px y la convierte a WebP. Al re-codificarla se eliminan
+ * los metadatos (EXIF/GPS). Devuelve null si GD no está disponible o falla.
+ */
+function optimize_image(string $path, array $info): ?string
+{
+    if (!function_exists('imagewebp') || !function_exists('imagecreatefromstring')) return null;
+    $src = @imagecreatefromstring((string)file_get_contents($path));
+    if (!$src) return null;
+    // Rotación según EXIF (fotos de celular)
+    if ($info[2] === IMAGETYPE_JPEG && function_exists('exif_read_data')) {
+        $exif = @exif_read_data($path);
+        $angles = [3 => 180, 6 => -90, 8 => 90];
+        if (!empty($exif['Orientation']) && isset($angles[$exif['Orientation']])) {
+            $rotated = imagerotate($src, $angles[$exif['Orientation']], 0);
+            if ($rotated) { imagedestroy($src); $src = $rotated; }
+        }
+    }
+    $w = imagesx($src);
+    $h = imagesy($src);
+    $scale = min(1, 1200 / max($w, $h));
+    $nw = max(1, (int)round($w * $scale));
+    $nh = max(1, (int)round($h * $scale));
+    $dst = imagecreatetruecolor($nw, $nh);
+    imagealphablending($dst, false);
+    imagesavealpha($dst, true);
+    imagefill($dst, 0, 0, imagecolorallocatealpha($dst, 0, 0, 0, 127));
+    imagecopyresampled($dst, $src, 0, 0, 0, 0, $nw, $nh, $w, $h);
+    imagedestroy($src);
+    ob_start();
+    $ok = imagewebp($dst, null, 82);
+    $data = ob_get_clean();
+    imagedestroy($dst);
+    return ($ok && $data) ? $data : null;
+}
+
 // ─── Rutas ───────────────────────────────────────────────────────────────────
 switch ($action) {
 
     case 'session':
+        // Sesiones anteriores al cambio a usuario: recuperar el nombre desde la base
+        if (!empty($_SESSION['admin_id']) && empty($_SESSION['admin_user'])) {
+            $stmt = db()->prepare('SELECT username FROM admin_users WHERE id = ?');
+            $stmt->execute([$_SESSION['admin_id']]);
+            $u = $stmt->fetchColumn();
+            if ($u === false) { $_SESSION = []; } else { $_SESSION['admin_user'] = $u; }
+        }
         json_out([
             'authed'     => !empty($_SESSION['admin_id']),
-            'email'      => $_SESSION['admin_email'] ?? null,
+            'username'   => $_SESSION['admin_user'] ?? null,
             'needsSetup' => admin_count() === 0,
         ]);
 
@@ -152,23 +205,23 @@ switch ($action) {
         if ($setupKey === '' || !hash_equals($setupKey, (string)($b['setup_key'] ?? ''))) {
             fail('Código de instalación incorrecto', 403);
         }
-        $email = strtolower(trim((string)($b['email'] ?? '')));
+        $username = normalize_username($b['username'] ?? '');
         $password = (string)($b['password'] ?? '');
-        validate_credentials($email, $password);
+        validate_credentials($username, $password);
         $pdo = db();
         $pdo->beginTransaction();
         if ((int)$pdo->query('SELECT COUNT(*) FROM admin_users FOR UPDATE')->fetchColumn() > 0) {
             $pdo->rollBack();
             fail('Ya existe un administrador', 403);
         }
-        $stmt = $pdo->prepare('INSERT INTO admin_users (email, password_hash) VALUES (?, ?)');
-        $stmt->execute([$email, password_hash($password, PASSWORD_DEFAULT)]);
+        $stmt = $pdo->prepare('INSERT INTO admin_users (username, password_hash) VALUES (?, ?)');
+        $stmt->execute([$username, password_hash($password, PASSWORD_DEFAULT)]);
         $newAdminId = (int)$pdo->lastInsertId();
         $pdo->commit();
         session_regenerate_id(true);
         $_SESSION['admin_id'] = $newAdminId;
-        $_SESSION['admin_email'] = $email;
-        json_out(['ok' => true]);
+        $_SESSION['admin_user'] = $username;
+        json_out(['ok' => true, 'username' => $username]);
 
     case 'login':
         if ($method !== 'POST') fail('Método no permitido', 405);
@@ -181,14 +234,14 @@ switch ($action) {
             fail('Demasiados intentos. Espera 15 minutos.', 429);
         }
         $b = body();
-        $email = strtolower(trim((string)($b['email'] ?? '')));
+        $username = normalize_username($b['username'] ?? '');
         $password = (string)($b['password'] ?? '');
-        $stmt = $pdo->prepare('SELECT id, email, password_hash FROM admin_users WHERE email = ?');
-        $stmt->execute([$email]);
+        $stmt = $pdo->prepare('SELECT id, username, password_hash FROM admin_users WHERE username = ?');
+        $stmt->execute([$username]);
         $user = $stmt->fetch();
         if (!$user || !password_verify($password, $user['password_hash'])) {
             $pdo->prepare('INSERT INTO login_attempts (ip) VALUES (?)')->execute([$ip]);
-            fail('Correo o contraseña incorrectos', 401);
+            fail('Usuario o contraseña incorrectos', 401);
         }
         if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) {
             $pdo->prepare('UPDATE admin_users SET password_hash = ? WHERE id = ?')
@@ -197,8 +250,8 @@ switch ($action) {
         $pdo->prepare('DELETE FROM login_attempts WHERE ip = ?')->execute([$ip]);
         session_regenerate_id(true);
         $_SESSION['admin_id'] = (int)$user['id'];
-        $_SESSION['admin_email'] = $user['email'];
-        json_out(['ok' => true, 'email' => $user['email']]);
+        $_SESSION['admin_user'] = $user['username'];
+        json_out(['ok' => true, 'username' => $user['username']]);
 
     case 'logout':
         $_SESSION = [];
@@ -219,6 +272,23 @@ switch ($action) {
         db()->prepare('UPDATE admin_users SET password_hash = ? WHERE id = ?')
             ->execute([password_hash($new, PASSWORD_DEFAULT), $_SESSION['admin_id']]);
         json_out(['ok' => true]);
+
+    case 'change_username':
+        if ($method !== 'POST') fail('Método no permitido', 405);
+        require_admin();
+        $b = body();
+        $username = normalize_username($b['username'] ?? '');
+        validate_username($username);
+        $stmt = db()->prepare('SELECT password_hash FROM admin_users WHERE id = ?');
+        $stmt->execute([$_SESSION['admin_id']]);
+        $hash = $stmt->fetchColumn();
+        if (!$hash || !password_verify((string)($b['password'] ?? ''), (string)$hash)) fail('La contraseña no es correcta', 401);
+        $stmt = db()->prepare('SELECT COUNT(*) FROM admin_users WHERE username = ? AND id <> ?');
+        $stmt->execute([$username, $_SESSION['admin_id']]);
+        if ((int)$stmt->fetchColumn() > 0) fail('Ese usuario ya existe', 409);
+        db()->prepare('UPDATE admin_users SET username = ? WHERE id = ?')->execute([$username, $_SESSION['admin_id']]);
+        $_SESSION['admin_user'] = $username;
+        json_out(['ok' => true, 'username' => $username]);
 
     case 'products':
         require_admin();
@@ -296,7 +366,7 @@ switch ($action) {
                 ? 'La imagen es demasiado grande'
                 : 'No se recibió la imagen');
         }
-        $max = (int)($CONFIG['max_upload_bytes'] ?? 5 * 1024 * 1024);
+        $max = (int)($CONFIG['max_upload_bytes'] ?? 25 * 1024 * 1024);
         if ($file['size'] > $max) fail('La imagen supera el tamaño máximo de ' . round($max / 1048576) . ' MB');
         $info = @getimagesize($file['tmp_name']);
         $types = [IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_WEBP => 'webp'];
@@ -314,9 +384,17 @@ switch ($action) {
                 '',
             ]));
         }
-        $name = $id . '-' . time() . '.' . $ext;
-        if (!move_uploaded_file($file['tmp_name'], $dir . DIRECTORY_SEPARATOR . $name)) {
-            fail('No se pudo guardar la imagen', 500);
+        $optimized = optimize_image($file['tmp_name'], $info);
+        if ($optimized !== null) {
+            $name = $id . '-' . time() . '.webp';
+            if (file_put_contents($dir . DIRECTORY_SEPARATOR . $name, $optimized) === false) {
+                fail('No se pudo guardar la imagen', 500);
+            }
+        } else {
+            $name = $id . '-' . time() . '.' . $ext;
+            if (!move_uploaded_file($file['tmp_name'], $dir . DIRECTORY_SEPARATOR . $name)) {
+                fail('No se pudo guardar la imagen', 500);
+            }
         }
         $url = rtrim($CONFIG['uploads_url'] ?? '/uploads/products', '/') . '/' . $name;
         db()->prepare('UPDATE products SET imagen_url = ? WHERE id = ?')->execute([$url, $id]);

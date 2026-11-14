@@ -45,7 +45,7 @@ function ScrunchiCard({ variants }: { variants: ScrunchiVariant[] }) {
             alt="Scrunchie"
             className="h-full w-full object-cover object-[50%_70%] transition-transform duration-300 hover:scale-105"
             loading="lazy"
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/img/logo.png"; }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/img/logo.webp"; }}
           />
         </div>
         <CardContent className="flex flex-col p-2 md:p-4">
@@ -267,7 +267,7 @@ export function Products() {
                         alt={product.display_name}
                         className="h-full w-full object-cover object-[50%_70%] transition-transform duration-300 hover:scale-105"
                         loading="lazy"
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/img/logo.png"; }}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/img/logo.webp"; }}
                       />
                       {precioFinal && (
                         <span className="absolute top-2 left-2 rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">

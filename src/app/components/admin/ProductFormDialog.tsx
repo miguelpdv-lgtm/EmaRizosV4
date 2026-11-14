@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { compressImage, validateImage } from "../../lib/image";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { adminApi, productImage, type Product, type ProductFields } from "../../lib/api";
@@ -110,6 +111,8 @@ export function ProductFormDialog({
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [status, setStatus] = useState("");
+  const [compressing, setCompressing] = useState(false);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -141,18 +144,19 @@ export function ProductFormDialog({
       [field]: f[field].includes(tag) ? f[field].filter((t) => t !== tag) : [...f[field], tag],
     }));
 
-  const pickFile = (f: File | undefined) => {
+  const pickFile = async (f: File | undefined) => {
     setError("");
     if (!f) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(f.type)) {
-      setError("La imagen debe ser JPG, PNG o WebP.");
-      return;
+    const invalid = validateImage(f);
+    if (invalid) return setError(invalid);
+    setCompressing(true);
+    try {
+      setFile(await compressImage(f));
+    } catch {
+      setFile(f); // si no se puede comprimir, se sube tal cual (el servidor la reduce)
+    } finally {
+      setCompressing(false);
     }
-    if (f.size > 5 * 1024 * 1024) {
-      setError("La imagen pesa más de 5 MB.");
-      return;
-    }
-    setFile(f);
   };
 
   const submit = async (e: FormEvent) => {
@@ -189,11 +193,13 @@ export function ProductFormDialog({
     };
 
     setSaving(true);
+    setStatus("Guardando…");
     try {
       let saved = isNew
         ? await adminApi.createProduct({ ...fields, id: form.id ? Number(form.id) : null })
         : await adminApi.updateProduct(product!.id, fields);
       if (file) {
+        setStatus("Subiendo imagen…");
         try {
           saved = await adminApi.uploadImage(saved.id, file);
         } catch (err) {
@@ -210,6 +216,7 @@ export function ProductFormDialog({
       setError((err as Error).message);
     } finally {
       setSaving(false);
+      setStatus("");
     }
   };
 
@@ -246,7 +253,7 @@ export function ProductFormDialog({
                   src={currentImage}
                   alt=""
                   className="h-full w-full object-cover"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/img/logo.png"; }}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/img/logo.webp"; }}
                 />
               ) : (
                 <ImagePlus className="size-10 text-muted-foreground" />
@@ -263,8 +270,11 @@ export function ProductFormDialog({
               onChange={(e) => { pickFile(e.target.files?.[0]); e.target.value = ""; }}
             />
             <p className="mt-2 text-xs text-muted-foreground">
-              JPG, PNG o WebP, máx. 5 MB. Ideal cuadrada (1:1).
-              {file && <span className="block font-medium text-primary">Nueva: {file.name}</span>}
+              JPG, PNG o WebP. Se optimiza sola antes de subirla. Ideal cuadrada (1:1).
+              {compressing && <span className="block font-medium text-primary">Optimizando imagen…</span>}
+              {file && !compressing && (
+                <span className="block font-medium text-primary">Lista: {Math.max(1, Math.round(file.size / 1024))} KB</span>
+              )}
             </p>
           </div>
 
@@ -406,9 +416,9 @@ export function ProductFormDialog({
         <div className="flex flex-col-reverse gap-3 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-end">
           {error && <p className="text-sm text-destructive sm:mr-auto">{error}</p>}
           <Button type="button" variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" disabled={saving || compressing}>
             {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
-            {isNew ? "Crear producto" : "Guardar cambios"}
+            {saving && status ? status : isNew ? "Crear producto" : "Guardar cambios"}
           </Button>
         </div>
       </form>

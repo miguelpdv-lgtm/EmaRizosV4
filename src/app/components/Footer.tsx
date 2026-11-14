@@ -12,7 +12,7 @@ export function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <ImageWithFallback
-                src="img/logo.png"
+                src="/img/logo.webp"
                 alt="Ema Rizos Logo"
                 className="h-10 w-auto object-contain rounded-md"
               />
@@ -132,6 +132,17 @@ export function Footer() {
           <p>
             &copy; 2026 Ema Rizos. Todos los derechos
             reservados.
+          </p>
+          <p className="mt-2 text-xs">
+            Desarrollado por{" "}
+            <a
+              href="https://miguelposada.dev/"
+              target="_blank"
+              rel="noopener"
+              className="font-medium text-primary hover:underline"
+            >
+              Miguel Posada
+            </a>
           </p>
         </div>
       </div>

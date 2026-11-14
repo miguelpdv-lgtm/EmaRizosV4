@@ -21,6 +21,11 @@ $CONFIG = require $configFile;
 ini_set('display_errors', '0');
 error_reporting(E_ALL);
 
+// Compresión gzip de las respuestas JSON (el catálogo baja de ~50 KB a ~8 KB)
+if (extension_loaded('zlib') && !ini_get('zlib.output_compression')) {
+    ob_start('ob_gzhandler');
+}
+
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: no-store');

@@ -16,7 +16,7 @@ export function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <ImageWithFallback
-              src="img/logo.png"
+              src="/img/logo.webp"
               alt="Ema Rizos Logo"
               className="h-10 w-auto object-contain rounded-md"
             />

@@ -34,9 +34,9 @@ type ServiceItem = {
 // ─── Datos ───────────────────────────────────────────────────────────────────
 
 const heroMedia: MediaItem[] = [
-  { src: "/img/services/hero-1.png", type: "image" },
-  { src: "/img/services/hero-2.png", type: "image" },
-  { src: "/img/services/hero-3.png", type: "image" },
+  { src: "/img/services/hero-1.webp", type: "image" },
+  { src: "/img/services/hero-2.webp", type: "image" },
+  { src: "/img/services/hero-3.webp", type: "image" },
 ];
 
 const services: ServiceItem[] = [
@@ -47,9 +47,9 @@ const services: ServiceItem[] = [
     description:
       "No todos los cabellos están dañados por lo mismo, y no todos necesitan lo mismo para recuperarse. Trabajamos con protocolos de hidratación, nutrición, reparación y reestructuración según lo que tu cabello necesita: si viene de procesos químicos, de coloración, de resequedad extrema o simplemente necesita recuperar fuerza y elasticidad. Cada tratamiento parte de un diagnóstico real, no de un paquete genérico.",
     media: [
-      { src: "/img/services/reconstructivos.png", type: "image" },
-      { src: "/img/services/reconstructivos-2.png", type: "image" },
-      { src: "/img/services/reconstructivos-3.png", type: "image" },
+      { src: "/img/services/reconstructivos.webp", type: "image" },
+      { src: "/img/services/reconstructivos-2.webp", type: "image" },
+      { src: "/img/services/reconstructivos-3.webp", type: "image" },
     ],
   },
   {
@@ -59,9 +59,9 @@ const services: ServiceItem[] = [
     description:
       "Cortamos en seco, trabajando directamente con tu patrón de rizo, tu densidad y la caída natural de tu cabello. No es un corte adaptado de técnicas para cabello liso — es un corte pensado desde el rizo. Forma, estructura y un resultado que se mantiene en tu día a día.",
     media: [
-      { src: "/img/services/cortes.png", type: "image" },
-      { src: "/img/services/cortes-2.png", type: "image" },
-      { src: "/img/services/cortes-3.png", type: "image" },
+      { src: "/img/services/cortes.webp", type: "image" },
+      { src: "/img/services/cortes-2.webp", type: "image" },
+      { src: "/img/services/cortes-3.webp", type: "image" },
     ],
   },
   {
@@ -71,9 +71,9 @@ const services: ServiceItem[] = [
     description:
       "Te definimos y te enseñamos. Cada sesión de estilizado es también una clase práctica: qué productos usar, cuánto producto aplicar, cómo distribuirlo según tu tipo de rizo y cómo secar para que el resultado que ves en el salón sea el que puedas replicar en casa.",
     media: [
-      { src: "/img/services/definicion.png", type: "image" },
-      { src: "/img/services/definicion-2.png", type: "image" },
-      { src: "/img/services/definicion-3.png", type: "image" },
+      { src: "/img/services/definicion.webp", type: "image" },
+      { src: "/img/services/definicion-2.webp", type: "image" },
+      { src: "/img/services/definicion-3.webp", type: "image" },
     ],
   },
   {
@@ -83,9 +83,9 @@ const services: ServiceItem[] = [
     description:
       "Hacemos color de una forma distinta: sin decoloración. Tonos completos, highlights y balayage diseñados para aportar luz y dimensión sin comprometer la estructura de tu rizo. No hacemos platinados ni procesos que sacrifiquen la salud del cabello para conseguir un tono. Todos los servicios de color requieren diagnóstico previo.",
     media: [
-      { src: "/img/services/color.png", type: "image" },
-      { src: "/img/services/color-2.png", type: "image" },
-      { src: "/img/services/color-3.png", type: "image" },
+      { src: "/img/services/color.webp", type: "image" },
+      { src: "/img/services/color-2.webp", type: "image" },
+      { src: "/img/services/color-3.webp", type: "image" },
     ],
   },
   {
@@ -95,9 +95,9 @@ const services: ServiceItem[] = [
     description:
       "Acompañamos tu proceso con servicios diseñados para cada etapa — desde el retiro progresivo del cabello dañado por procesos químicos hasta el gran corte final. No hacemos definiciones completas en cabello en transición porque sería forzar un resultado que la textura mixta aún no permite. Lo que sí hacemos es trabajar con lo que tienes: fortalecer lo que crece, retirar lo que ya no sirve y enseñarte a manejar ambas texturas mientras avanzas.",
     media: [
-      { src: "/img/services/transicion.png", type: "image" },
-      { src: "/img/services/transicion-2.png", type: "image" },
-      { src: "/img/services/transicion-3.png", type: "image" },
+      { src: "/img/services/transicion.webp", type: "image" },
+      { src: "/img/services/transicion-2.webp", type: "image" },
+      { src: "/img/services/transicion-3.webp", type: "image" },
     ],
   },
 ];

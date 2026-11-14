@@ -7,13 +7,14 @@ import { toast } from "sonner";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { adminApi, productImage, type Product } from "../lib/api";
+import { compressImage, validateImage } from "../lib/image";
 import { ProductFormDialog, PESO_FORMULA_OPTIONS } from "../components/admin/ProductFormDialog";
 
 const formatCOP = (v: number) => `$${v.toLocaleString("es-CO")}`;
 
 // ─── Pantalla de acceso (login o creación del primer admin) ─────────────────
-function AuthScreen({ needsSetup, onAuthed }: { needsSetup: boolean; onAuthed: (email: string) => void }) {
-  const [email, setEmail] = useState("");
+function AuthScreen({ needsSetup, onAuthed }: { needsSetup: boolean; onAuthed: (username: string) => void }) {
+  const [username, setUsername] = useState("");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
   const [setupKey, setSetupKey] = useState("");
@@ -29,9 +30,10 @@ function AuthScreen({ needsSetup, onAuthed }: { needsSetup: boolean; onAuthed: (
     }
     setLoading(true);
     try {
-      if (needsSetup) await adminApi.setup(email.trim(), pw, setupKey.trim());
-      else await adminApi.login(email.trim(), pw);
-      onAuthed(email.trim().toLowerCase());
+      const r = needsSetup
+        ? await adminApi.setup(username.trim(), pw, setupKey.trim())
+        : await adminApi.login(username.trim(), pw);
+      onAuthed(r.username);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -57,7 +59,7 @@ function AuthScreen({ needsSetup, onAuthed }: { needsSetup: boolean; onAuthed: (
           {needsSetup && (
             <Input placeholder="Código de instalación" value={setupKey} onChange={(e) => { setSetupKey(e.target.value); setError(""); }} autoComplete="off" required />
           )}
-          <Input type="email" placeholder="Correo electrónico" value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }} autoComplete="email" required />
+          <Input placeholder="Usuario" value={username} onChange={(e) => { setUsername(e.target.value); setError(""); }} autoComplete="username" autoCapitalize="none" spellCheck={false} required />
           <Input
             type="password"
             placeholder={needsSetup ? "Contraseña (mín. 10 caracteres)" : "Contraseña"}
@@ -80,22 +82,39 @@ function AuthScreen({ needsSetup, onAuthed }: { needsSetup: boolean; onAuthed: (
   );
 }
 
-// ─── Cambio de contraseña ────────────────────────────────────────────────────
-function ChangePasswordDialog({ onClose }: { onClose: () => void }) {
+// ─── Cuenta: cambiar usuario o contraseña ───────────────────────────────────
+function AccountDialog({ username, onClose, onUsernameChanged }: {
+  username: string | null;
+  onClose: () => void;
+  onUsernameChanged: (u: string) => void;
+}) {
+  const [tab, setTab] = useState<"password" | "username">("password");
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [next2, setNext2] = useState("");
+  const [newUser, setNewUser] = useState(username ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (next.length < 10) return setError("Mínimo 10 caracteres.");
-    if (next !== next2) return setError("Las contraseñas no coinciden.");
+    setError("");
+    if (tab === "password") {
+      if (next.length < 10) return setError("Mínimo 10 caracteres.");
+      if (next !== next2) return setError("Las contraseñas no coinciden.");
+    } else if (!/^[a-zA-Z0-9._-]{3,40}$/.test(newUser.trim())) {
+      return setError("De 3 a 40 caracteres: letras, números, punto, guion o guion bajo.");
+    }
     setSaving(true);
     try {
-      await adminApi.changePassword(current, next);
-      toast.success("Contraseña actualizada");
+      if (tab === "password") {
+        await adminApi.changePassword(current, next);
+        toast.success("Contraseña actualizada");
+      } else {
+        const r = await adminApi.changeUsername(newUser.trim(), current);
+        onUsernameChanged(r.username);
+        toast.success(`Ahora entras con el usuario "${r.username}"`);
+      }
       onClose();
     } catch (err) {
       setError((err as Error).message);
@@ -104,14 +123,28 @@ function ChangePasswordDialog({ onClose }: { onClose: () => void }) {
     }
   };
 
+  const tabCls = (t: typeof tab) =>
+    `flex-1 rounded-full px-3 py-1.5 text-xs font-medium ${tab === t ? "bg-primary text-white" : "text-muted-foreground hover:text-primary"}`;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <form onSubmit={submit} className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-2xl">
-        <h2 className="mb-4 text-lg font-semibold text-primary">Cambiar contraseña</h2>
+        <h2 className="mb-4 text-lg font-semibold text-primary">Mi cuenta</h2>
+        <div className="mb-4 flex gap-1 rounded-full border p-1">
+          <button type="button" className={tabCls("password")} onClick={() => { setTab("password"); setError(""); }}>Contraseña</button>
+          <button type="button" className={tabCls("username")} onClick={() => { setTab("username"); setError(""); }}>Usuario</button>
+        </div>
         <div className="flex flex-col gap-3">
+          {tab === "username" && (
+            <Input placeholder="Nuevo usuario" value={newUser} onChange={(e) => setNewUser(e.target.value)} autoComplete="username" autoCapitalize="none" spellCheck={false} required />
+          )}
           <Input type="password" placeholder="Contraseña actual" value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" required />
-          <Input type="password" placeholder="Nueva contraseña (mín. 10)" value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" required />
-          <Input type="password" placeholder="Repite la nueva" value={next2} onChange={(e) => setNext2(e.target.value)} autoComplete="new-password" required />
+          {tab === "password" && (
+            <>
+              <Input type="password" placeholder="Nueva contraseña (mín. 10)" value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" required />
+              <Input type="password" placeholder="Repite la nueva" value={next2} onChange={(e) => setNext2(e.target.value)} autoComplete="new-password" required />
+            </>
+          )}
           {error && <p className="text-xs text-destructive">{error}</p>}
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
@@ -125,8 +158,8 @@ function ChangePasswordDialog({ onClose }: { onClose: () => void }) {
 
 // ─── Panel ───────────────────────────────────────────────────────────────────
 export function AdminPanel() {
-  const [session, setSession] = useState<{ checked: boolean; authed: boolean; needsSetup: boolean; email: string | null }>(
-    { checked: false, authed: false, needsSetup: false, email: null }
+  const [session, setSession] = useState<{ checked: boolean; authed: boolean; needsSetup: boolean; username: string | null }>(
+    { checked: false, authed: false, needsSetup: false, username: null }
   );
   const [sessionError, setSessionError] = useState("");
 
@@ -178,7 +211,7 @@ export function AdminPanel() {
 
   const handleLogout = async () => {
     await adminApi.logout().catch(() => {});
-    setSession((s) => ({ ...s, authed: false, email: null }));
+    setSession((s) => ({ ...s, authed: false, username: null }));
   };
 
   const replaceProduct = (p: Product) =>
@@ -233,11 +266,12 @@ export function AdminPanel() {
 
   const quickUpload = async (p: Product, file: File | undefined) => {
     if (!file) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return toast.error("Usa JPG, PNG o WebP.");
-    if (file.size > 5 * 1024 * 1024) return toast.error("La imagen pesa más de 5 MB.");
+    const invalid = validateImage(file);
+    if (invalid) return toast.error(invalid);
     setUploadingId(p.id);
     try {
-      replaceProduct(await adminApi.uploadImage(p.id, file));
+      const optimized = await compressImage(file).catch(() => file);
+      replaceProduct(await adminApi.uploadImage(p.id, optimized));
       toast.success("Imagen actualizada");
     } catch (err) {
       toast.error((err as Error).message);
@@ -284,7 +318,7 @@ export function AdminPanel() {
     return (
       <AuthScreen
         needsSetup={session.needsSetup}
-        onAuthed={(email) => setSession({ checked: true, authed: true, needsSetup: false, email })}
+        onAuthed={(username) => setSession({ checked: true, authed: true, needsSetup: false, username })}
       />
     );
   }
@@ -297,7 +331,7 @@ export function AdminPanel() {
           <div>
             <h1 className="text-2xl font-bold text-primary md:text-3xl">Panel de Administración</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Crea y edita productos, sube imágenes y maneja descuentos · {session.email}
+              Crea y edita productos, sube imágenes y maneja descuentos · {session.username}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -308,7 +342,7 @@ export function AdminPanel() {
               <RefreshCw className="mr-2 size-4" /> Recargar
             </Button>
             <Button variant="outline" onClick={() => setShowPw(true)} className="text-sm">
-              <KeyRound className="mr-2 size-4" /> Contraseña
+              <KeyRound className="mr-2 size-4" /> Mi cuenta
             </Button>
             <Button variant="outline" onClick={handleLogout} className="text-sm text-destructive hover:text-destructive">
               <LogOut className="mr-2 size-4" /> Salir
@@ -417,7 +451,7 @@ export function AdminPanel() {
                               src={productImage(product)}
                               alt={product.display_name}
                               className="h-full w-full object-cover"
-                              onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/img/logo.png"; }}
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/img/logo.webp"; }}
                             />
                             <span className={`absolute inset-0 flex items-center justify-center bg-black/50 text-white transition-opacity ${uploadingId === product.id ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
                               {uploadingId === product.id ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
@@ -547,7 +581,13 @@ export function AdminPanel() {
           }}
         />
       )}
-      {showPw && <ChangePasswordDialog onClose={() => setShowPw(false)} />}
+      {showPw && (
+        <AccountDialog
+          username={session.username}
+          onClose={() => setShowPw(false)}
+          onUsernameChanged={(username) => setSession((s) => ({ ...s, username }))}
+        />
+      )}
     </div>
   );
 }

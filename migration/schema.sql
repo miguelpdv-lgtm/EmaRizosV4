@@ -40,11 +40,11 @@ CREATE TABLE IF NOT EXISTS products (
 
 CREATE TABLE IF NOT EXISTS admin_users (
   id            INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  email         VARCHAR(190) NOT NULL,
+  username      VARCHAR(40)  NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_email (email)
+  UNIQUE KEY uq_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS login_attempts (

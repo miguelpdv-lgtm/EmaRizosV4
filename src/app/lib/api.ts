@@ -31,7 +31,7 @@ export type Product = {
 
 /** Imagen del producto: la subida desde el panel o, si no hay, la del catálogo original. */
 export function productImage(p: { id: number; imagen_url?: string | null }): string {
-  return p.imagen_url || `/img/products/${p.id}.png`;
+  return p.imagen_url || `/img/products/${p.id}.webp`;
 }
 
 export class ApiError extends Error {
@@ -42,28 +42,58 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function request<T>(path: string, init: RequestInit = {}, timeoutMs = 30000): Promise<T> {
   const headers = new Headers(init.headers);
   if (init.method && init.method !== "GET") {
     headers.set("X-Requested-With", "emarizos-admin");
     if (init.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
   }
-  const res = await fetch(`${API_BASE}/${path}`, { credentials: "include", ...init, headers });
+  // Tiempo límite: nunca dejar la pantalla "cargando" para siempre
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/${path}`, { credentials: "include", ...init, headers, signal: controller.signal });
+  } catch (e) {
+    if ((e as Error).name === "AbortError") {
+      throw new ApiError("El servidor tardó demasiado en responder. Revisa tu conexión e intenta de nuevo.", 0);
+    }
+    throw new ApiError("No hay conexión con el servidor. Revisa tu internet e intenta de nuevo.", 0);
+  } finally {
+    clearTimeout(timer);
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new ApiError((data as { error?: string }).error || `Error ${res.status}`, res.status);
   return data as T;
 }
 
-// ─── Público ─────────────────────────────────────────────────────────────────
-export function getProducts(opts: { categoria?: string; limit?: number } = {}): Promise<Product[]> {
-  const q = new URLSearchParams();
-  if (opts.categoria) q.set("categoria", opts.categoria);
-  if (opts.limit) q.set("limit", String(opts.limit));
-  const qs = q.toString();
-  return request<Product[]>(`products.php${qs ? `?${qs}` : ""}`);
+// ─── Público (con caché en memoria compartida entre páginas) ────────────────
+const CACHE_MS = 2 * 60 * 1000;
+let catalog: { at: number; promise: Promise<Product[]> } | null = null;
+
+/** Catálogo completo con stock. Una sola petición sirve a Inicio, Productos, Detalle y Test. */
+function getCatalog(): Promise<Product[]> {
+  if (!catalog || Date.now() - catalog.at > CACHE_MS) {
+    const promise = request<Product[]>("products.php");
+    catalog = { at: Date.now(), promise };
+    promise.catch(() => { if (catalog?.promise === promise) catalog = null; });
+  }
+  return catalog.promise;
+}
+
+export async function getProducts(opts: { categoria?: string; limit?: number } = {}): Promise<Product[]> {
+  let list = await getCatalog();
+  if (opts.categoria) list = list.filter((p) => p.categoria === opts.categoria);
+  if (opts.limit) list = list.slice(0, opts.limit);
+  return list;
 }
 
 export async function getProduct(id: number): Promise<Product | null> {
+  // Si ya se cargó el catálogo, el detalle es instantáneo
+  if (catalog && Date.now() - catalog.at <= CACHE_MS) {
+    const found = (await catalog.promise.catch(() => [] as Product[])).find((p) => p.id === id);
+    if (found) return found;
+  }
   try {
     return await request<Product>(`products.php?id=${encodeURIComponent(id)}`);
   } catch (e) {
@@ -72,19 +102,26 @@ export async function getProduct(id: number): Promise<Product | null> {
   }
 }
 
+/** Precarga el catálogo en segundo plano (por ejemplo, al abrir la web). */
+export function prefetchCatalog(): void {
+  getCatalog().catch(() => {});
+}
+
 // ─── Admin ───────────────────────────────────────────────────────────────────
 const admin = (action: string) => `admin.php?action=${action}`;
 const post = <T>(action: string, body: unknown) =>
   request<T>(admin(action), { method: "POST", body: JSON.stringify(body) });
 
-export type AdminSession = { authed: boolean; email: string | null; needsSetup: boolean };
+export type AdminSession = { authed: boolean; username: string | null; needsSetup: boolean };
 export type ProductFields = Partial<Omit<Product, "id" | "imagen_url">>;
 
 export const adminApi = {
   session: () => request<AdminSession>(admin("session")),
-  setup: (email: string, password: string, setupKey: string) =>
-    post<{ ok: true }>("setup", { email, password, setup_key: setupKey }),
-  login: (email: string, password: string) => post<{ ok: true; email: string }>("login", { email, password }),
+  setup: (username: string, password: string, setupKey: string) =>
+    post<{ ok: true; username: string }>("setup", { username, password, setup_key: setupKey }),
+  login: (username: string, password: string) => post<{ ok: true; username: string }>("login", { username, password }),
+  changeUsername: (username: string, password: string) =>
+    post<{ ok: true; username: string }>("change_username", { username, password }),
   logout: () => post<{ ok: true }>("logout", {}),
   changePassword: (current: string, next: string) => post<{ ok: true }>("change_password", { current, new: next }),
   products: () => request<Product[]>(admin("products")),
@@ -96,6 +133,6 @@ export const adminApi = {
     const form = new FormData();
     form.append("id", String(id));
     form.append("image", file);
-    return request<Product>(admin("upload_image"), { method: "POST", body: form });
+    return request<Product>(admin("upload_image"), { method: "POST", body: form }, 120000);
   },
 };
