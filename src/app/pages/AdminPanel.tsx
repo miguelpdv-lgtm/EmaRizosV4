@@ -6,7 +6,7 @@ import {
 import { toast } from "sonner";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { adminApi, productImage, type Product } from "../lib/api";
+import { adminApi, productImage, AUTH_EXPIRED_EVENT, type Product } from "../lib/api";
 import { compressImage, validateImage } from "../lib/image";
 import { ProductFormDialog, PESO_FORMULA_OPTIONS } from "../components/admin/ProductFormDialog";
 
@@ -156,6 +156,51 @@ function AccountDialog({ username, onClose, onUsernameChanged }: {
   );
 }
 
+// ─── Sesión vencida: volver a entrar sin cerrar lo que se está editando ──────
+function ReloginDialog({ username, onDone }: { username: string | null; onDone: (username: string) => void }) {
+  const [user, setUser] = useState(username ?? "");
+  const [pw, setPw] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const r = await adminApi.login(user.trim(), pw);
+      onDone(r.username);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
+      <form onSubmit={submit} className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-2xl">
+        <div className="mb-4 flex items-center gap-3">
+          <ShieldCheck className="size-7 shrink-0 text-primary" />
+          <div>
+            <h2 className="text-lg font-semibold text-primary">Tu sesión expiró</h2>
+            <p className="text-xs text-muted-foreground">Vuelve a entrar. Lo que estabas editando sigue abierto.</p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-3">
+          <Input placeholder="Usuario" value={user} onChange={(e) => { setUser(e.target.value); setError(""); }} autoComplete="username" autoCapitalize="none" spellCheck={false} required />
+          <Input type="password" placeholder="Contraseña" value={pw} onChange={(e) => { setPw(e.target.value); setError(""); }} autoComplete="current-password" autoFocus required />
+          {error && <p className="text-xs text-destructive">{error}</p>}
+          <Button type="submit" disabled={loading}>
+            {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
+            Entrar
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 // ─── Panel ───────────────────────────────────────────────────────────────────
 export function AdminPanel() {
   const [session, setSession] = useState<{ checked: boolean; authed: boolean; needsSetup: boolean; username: string | null }>(
@@ -200,14 +245,31 @@ export function AdminPanel() {
     try {
       setProducts(await adminApi.products());
     } catch (err) {
-      if ((err as { status?: number }).status === 401) setSession((s) => ({ ...s, authed: false }));
-      else toast.error((err as Error).message);
+      // Un 401 abre el diálogo de "sesión expirada" (evento global); el resto se muestra
+      if ((err as { status?: number }).status !== 401) toast.error((err as Error).message);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => { if (session.authed) loadProducts(); }, [session.authed, loadProducts]);
+
+  // Sesión vencida: el servidor respondió 401 o, al volver a la pestaña, ya no hay sesión
+  const [expired, setExpired] = useState(false);
+  useEffect(() => {
+    if (!session.authed) return;
+    const onExpired = () => setExpired(true);
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      adminApi.session().then((s) => { if (!s.authed) setExpired(true); }).catch(() => {});
+    };
+    window.addEventListener(AUTH_EXPIRED_EVENT, onExpired);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [session.authed]);
 
   const handleLogout = async () => {
     await adminApi.logout().catch(() => {});
@@ -578,6 +640,16 @@ export function AdminPanel() {
             if (isNew) setProducts((prev) => [...prev, p].sort((a, b) => a.display_name.localeCompare(b.display_name)));
             else replaceProduct(p);
             toast.success(isNew ? "Producto creado" : "Cambios guardados");
+          }}
+        />
+      )}
+      {expired && (
+        <ReloginDialog
+          username={session.username}
+          onDone={(username) => {
+            setExpired(false);
+            setSession((s) => ({ ...s, username }));
+            toast.success("Listo, vuelve a guardar tus cambios");
           }}
         />
       )}

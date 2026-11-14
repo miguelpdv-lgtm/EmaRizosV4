@@ -63,9 +63,19 @@ async function request<T>(path: string, init: RequestInit = {}, timeoutMs = 3000
     clearTimeout(timer);
   }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new ApiError((data as { error?: string }).error || `Error ${res.status}`, res.status);
+  if (!res.ok) {
+    // Sesión del panel vencida: avisar al panel para pedir login sin perder lo que se edita
+    if (res.status === 401 && path.startsWith("admin.php") && !/action=(login|setup|session)/.test(path)) {
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+      throw new ApiError("Tu sesión expiró. Vuelve a entrar y guarda de nuevo.", 401);
+    }
+    throw new ApiError((data as { error?: string }).error || `Error ${res.status}`, res.status);
+  }
   return data as T;
 }
+
+/** Evento que se dispara cuando el servidor dice que la sesión del panel ya no existe. */
+export const AUTH_EXPIRED_EVENT = "emarizos:auth-expired";
 
 // ─── Público (con caché en memoria compartida entre páginas) ────────────────
 const CACHE_MS = 2 * 60 * 1000;

@@ -20,6 +20,10 @@ return [
     // Código que pide el panel para crear el PRIMER administrador. Después ya no se usa.
     'setup_key' => 'CAMBIAR-por-un-codigo-largo',
 
+    // Carpeta donde se guardan las sesiones del panel (fuera de public_html).
+    // Si no se indica, se usa /home/USUARIO/emarizos-sessions.
+    // 'sessions_dir' => '/home/usuariocpanel/emarizos-sessions',
+
     // Solo para desarrollo local (ej. 'http://localhost:5173'). En producción, vacío.
     'allowed_origins' => [],
 ];

@@ -11,15 +11,44 @@ require __DIR__ . '/_bootstrap.php';
 
 $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
-session_name('emarizos_admin');
-session_set_cookie_params([
-    'lifetime' => 0,
+// ─── Sesión ──────────────────────────────────────────────────────────────────
+// El hosting borra las sesiones de su carpeta compartida a los 24 min sin uso.
+// Se guardan en una carpeta propia (fuera de public_html) y duran 12 h desde el último uso.
+const SESSION_TTL = 12 * 60 * 60;
+$sessionDir = $CONFIG['sessions_dir'] ?? (dirname(__DIR__, 2) . '/emarizos-sessions');
+if (!is_dir($sessionDir)) {
+    @mkdir($sessionDir, 0700, true);
+}
+if (is_dir($sessionDir) && is_writable($sessionDir)) {
+    session_save_path($sessionDir);
+    ini_set('session.gc_probability', '1');
+    ini_set('session.gc_divisor', '100');
+}
+ini_set('session.gc_maxlifetime', (string)SESSION_TTL);
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+
+$cookieParams = [
+    'lifetime' => SESSION_TTL,
     'path'     => '/api/',
     'secure'   => $secure,
     'httponly' => true,
     'samesite' => 'Strict',
-]);
+];
+session_name('emarizos_admin');
+session_set_cookie_params($cookieParams);
 session_start();
+
+// Renueva la cookie en cada uso para que el plazo cuente desde la última actividad
+if (!empty($_SESSION['admin_id'])) {
+    setcookie(session_name(), session_id(), [
+        'expires'  => time() + SESSION_TTL,
+        'path'     => $cookieParams['path'],
+        'secure'   => $secure,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+}
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = (string)($_GET['action'] ?? '');
